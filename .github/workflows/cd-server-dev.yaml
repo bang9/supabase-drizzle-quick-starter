@@ -1,0 +1,91 @@
+name: Upload image to ECR (dev)
+
+on:
+  push:
+    branches:
+      - dev
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPO: starter-server-dev
+  CI: 1
+  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+  PROJECT_ID: ${{ secrets.SUPABASE_PRJ_ID_DEV }}
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      database: ${{ steps.filter.outputs.database }}
+      server: ${{ steps.filter.outputs.server }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            database:
+              - 'supabase/migrations/**'
+              - 'drizzle.config.ts'
+            server:
+              - 'apps/server/**'
+
+  db-push:
+    name: DB migration
+    runs-on: ubuntu-latest
+    needs: changes
+    if: ${{ needs.changes.outputs.database == 'true' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - run: supabase db push --db-url ${{ secrets.DB_URL_DEV }}
+        continue-on-error: true
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: changes
+    if: ${{ needs.changes.outputs.server == 'true' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create .env.dev file
+        run: |
+          echo SUPABASE_URL=${{ secrets.SUPABASE_URL_DEV }} >> .env.dev
+          echo SUPABASE_KEY=${{ secrets.SUPABASE_KEY_DEV }} >> .env.dev
+          echo SUPABASE_JWT_SECRET=${{ secrets.SUPABASE_JWT_SECRET_DEV }} >> .env.dev
+          echo DATABASE_URL=${{ secrets.DB_URL_DEV }} >> .env.dev
+          echo NODE_ENV=dev >> .env.dev
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ vars.AWS_ROLE }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push docker image to Amazon ECR
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: ${{ env.ECR_REPO }}
+          IMAGE_TAG: latest
+        run: |
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG

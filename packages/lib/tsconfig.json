@@ -1,0 +1,7 @@
+{
+  "extends": "@starter/tsconfig",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler"
+  }
+}

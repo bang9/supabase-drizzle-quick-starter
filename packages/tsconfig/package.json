@@ -1,0 +1,10 @@
+{
+  "name": "@starter/tsconfig",
+  "version": "1.0.0",
+  "type": "module",
+  "module": "tsconfig.json",
+  "main": "tsconfig.json",
+  "scripts": {
+    "clean": "rm -rf dist node_modules"
+  }
+}

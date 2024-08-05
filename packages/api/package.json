@@ -1,0 +1,22 @@
+{
+  "name": "@starter/api",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "generate": "pnpm run gen:openapi && pnpm run gen:types",
+    "gen:openapi": "pnpm -r build && pnpm fastify generate-swagger ../../apps/server/dist/app.js > types.json",
+    "gen:types": "pnpm openapi-typescript ./types.json -o schema.d.ts",
+    "build": "tsup",
+    "clean": "rm -rf dist node_modules"
+  },
+  "dependencies": {
+    "@starter/tsconfig": "workspace:^",
+    "openapi-fetch": "^0.10.2"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.0.2"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "@starter/prettier-config",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "prettier.config.mjs",
+  "module": "prettier.config.mjs",
+  "scripts": {
+    "clean": "rm -rf dist node_modules"
+  },
+  "dependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^4.3.0"
+  }
+}

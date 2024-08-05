@@ -1,0 +1,31 @@
+{
+  "name": "supabase-drizzle-quick-starter",
+  "version": "1.0.0",
+  "license": "MIT",
+  "packageManager": "pnpm@9.6.0",
+  "scripts": {
+    "dev": "pnpm --filter @starter/server dev",
+    "clean": "rm -rf node_modules && pnpm -r clean",
+    "gen-api": "pnpm --filter @starter/api generate",
+    "docker:build": "pnpm clean && docker build . -t 'starter-server-image'",
+    "docker:run": "docker run -p 3000:3000 'starter-server-image'",
+    "db:local:sync": "pnpm drizzle-kit generate && pnpm supabase migration up --local",
+    "db:remote:sync": "pnpm drizzle-kit generate && pnpm supabase migration up -- linked",
+    "db:reset": "rm -rf supabase/migrations supabase/seed.sql && pnpm supabase db reset --local && pnpm supabase db reset --linked"
+  },
+  "dependencies": {
+    "fastify": "^4.28.1"
+  },
+  "devDependencies": {
+    "@starter/prettier-config": "workspace:^",
+    "@starter/tsconfig": "workspace:^",
+    "@types/node": "^22.1.0",
+    "dotenv": "^16.4.5",
+    "drizzle-kit": "^0.23.1",
+    "fastify-cli": "^6.3.0",
+    "prettier": "^3.3.3",
+    "supabase": "^1.187.10",
+    "tsup": "^8.2.4",
+    "typescript": "5.4.5"
+  }
+}
